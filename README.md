@@ -12,7 +12,7 @@ After that a unknow object is defined and the KDTree is searching for this unkow
 At the end we coutput the different votes, from the search.
 
  ```cs
-    Categories categories = new Categories();
+            Categories categories = new Categories();
 
             categories.AddCategory("Kat", new FeatureVector[]
             {
