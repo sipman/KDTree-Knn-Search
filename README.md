@@ -53,12 +53,7 @@ At the end we coutput the different votes, from the search.
                 new FeatureVector(new int[]{1,90})
             };
 
-            KDTree.Search(unkown);
-
-
-            Console.WriteLine("Kat: "+categories.GetCategory("Kat").votes);
-            Console.WriteLine("Hus: "+categories.GetCategory("Hus").votes);
-            Console.WriteLine("Flaske: "+categories.GetCategory("Flaske").votes);
+            Console.WriteLine(KDTree.Search(unkown));
 ```
 
 ## Motivation
