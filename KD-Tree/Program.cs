@@ -16,18 +16,18 @@ namespace KD_Tree
             categories.AddCategory("Kat", new FeatureVector[]
             {
                 new FeatureVector(new int[]{1,9}),
-                new FeatureVector(new int[]{1,8}),
+                new FeatureVector(new int[]{3,8}),
                 new FeatureVector(new int[]{2,6}),
-                new FeatureVector(new int[]{2,1}),
+                new FeatureVector(new int[]{4,1}),
 
             });
 
             categories.AddCategory("Hus", new FeatureVector[]
             {
-                new FeatureVector(new int[]{11,67}),
-                new FeatureVector(new int[]{12,84}),
-                new FeatureVector(new int[]{11,22}),
-                new FeatureVector(new int[]{13,19}),
+                new FeatureVector(new int[]{5,2}),
+                new FeatureVector(new int[]{6,11}),
+                new FeatureVector(new int[]{8,15}),
+                new FeatureVector(new int[]{7,14}),
 
             });
 
@@ -47,17 +47,14 @@ namespace KD_Tree
             FeatureVector[] unkown =
             {
                 new FeatureVector(new int[]{2,3}),
-                new FeatureVector(new int[]{4,22}),
+                new FeatureVector(new int[]{4,6}),
                 new FeatureVector(new int[]{2,3}),
-                new FeatureVector(new int[]{1,90})
+                new FeatureVector(new int[]{1,9})
             };
 
-            KDTree.Search(unkown);
+            Console.WriteLine(KDTree.Search(unkown));
 
 
-            Console.WriteLine("Kat: "+categories.GetCategory("Kat").votes);
-            Console.WriteLine("Hus: "+categories.GetCategory("Hus").votes);
-            Console.WriteLine("Flaske: "+categories.GetCategory("Flaske").votes);
         }
 
     }
