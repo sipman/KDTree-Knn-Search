@@ -8,7 +8,6 @@ namespace KD_Tree
     {
         public string label = String.Empty;
         public List<FeatureVector> features;
-        public int votes = 0;
 
         public Category(string label, FeatureVector [] features)
         {

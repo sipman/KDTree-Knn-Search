@@ -39,20 +39,20 @@ namespace KD_Tree
 
         }
 
-        private List<KDNode> BestBinFirst(int[] point)
+        private List<KDNode> MedianDeterminedSearch(int[] point)
         {
 
-            return BestBinFirst(3, point);
+            return MedianDeterminedSearch(3, point);
         }
 
-        private List<KDNode> BestBinFirst(int k, int[] point)
+        private List<KDNode> MedianDeterminedSearch(int k, int[] point)
         {
             List<int> path = new List<int>();
             path.Add(-1);
-            return BestBinFirst(k, nodes, point, 0, path);
+            return MedianDeterminedSearch(k, nodes, point, 0, path);
         }
 
-        private List<KDNode> BestBinFirst(int k, List<KDNode> nodes, int[] point, int index, List<int> path)
+        private List<KDNode> MedianDeterminedSearch(int k, List<KDNode> nodes, int[] point, int index, List<int> path)
         {
             int numOfNodesInLeaf = nodes.Count;
             if (numOfNodesInLeaf <= k)
@@ -84,7 +84,7 @@ namespace KD_Tree
             int nextStep = (point[index] < newLeaf.MedianValue) ? 0 : 1;
             path.Add(nextStep);
 
-            return BestBinFirst(k, newNodes, point, ((index + 1 < point.Length) ? index+1 : index = 0), path);
+            return MedianDeterminedSearch(k, newNodes, point, ((index + 1 < point.Length) ? index+1 : index = 0), path);
         }
 
 
@@ -125,14 +125,14 @@ namespace KD_Tree
             return newLeaf;
         }
 
-        private bool NNTreeSearch(FeatureVector vector)
+        private bool EuclideanDistanceSearch(FeatureVector vector)
         {
             List<int> path = new List<int>();
             path.Add(-1);
-            return NNTreeSearch(vector, path, nodes.Count);
+            return EuclideanDistanceSearch(vector, path, nodes.Count);
         }
 
-        private bool NNTreeSearch(FeatureVector vector, List<int> path, int nodesLeft)
+        private bool EuclideanDistanceSearch(FeatureVector vector, List<int> path, int nodesLeft)
         {
             if (tree.Count <= 0)
             {
@@ -231,7 +231,7 @@ namespace KD_Tree
             {
                 return true;
             }
-            return NNTreeSearch(vector, path, remainingTotalNodes);
+            return EuclideanDistanceSearch(vector, path, remainingTotalNodes);
         }
 
 
@@ -255,12 +255,10 @@ namespace KD_Tree
 
             foreach (FeatureVector vector in vectors)
             {
-                /*
-                List<KDNode> kNN = BestBinFirst(k, vector.point);
-                DetermineCloset(kNN.ToArray(), vector);
-                */
-                NNTreeSearch(vector);
 
+                /*List<KDNode> kNN = MedianDeterminedSearch(k, vector.point);
+                DetermineCloset(kNN.ToArray(), vector);*/
+                EuclideanDistanceSearch(vector);
 
             }
             string result = SelectResult(vectors);

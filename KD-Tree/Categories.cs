@@ -31,10 +31,5 @@ namespace KD_Tree
             return categories.ToArray();
         }
 
-        public void CastVote(string label)
-        {
-            GetCategory(label).votes++;
-        }
-
     }
 }
