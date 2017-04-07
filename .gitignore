@@ -291,3 +291,7 @@ __pycache__/
 # Fix for ShiftSharp/ShiftSharp.sln issue
 ShiftSharp/ShiftSharp.sln
 ShiftSharp/ShiftSharp.csproj
+
+
+
+Database/

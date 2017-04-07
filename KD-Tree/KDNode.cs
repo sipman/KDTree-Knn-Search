@@ -4,30 +4,14 @@ namespace KD_Tree
 {
     public class KDNode
     {
-        public int[] point;
+        public double[] descr;
         public string label;
-        public KDNode(string label, int [] point)
+
+        public KDNode(string label, double[] descr)
         {
 
-            this.point = point;
+            this.descr = descr;
             this.label = label;
-        }
-
-        public string ToString()
-        {
-            string rtr = "{ Point: (";
-            bool first = true;
-            foreach (int i in point)
-            {
-                if(!first){
-                 rtr += ", ";
-                }
-                rtr += i.ToString();
-                first = false;
-            }
-            rtr += "),";
-            rtr += " Object: "+label+" }";
-            return rtr;
         }
     }
 }

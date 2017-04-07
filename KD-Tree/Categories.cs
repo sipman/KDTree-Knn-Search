@@ -12,7 +12,7 @@ namespace KD_Tree
             this.categories = new List<Category>();
         }
 
-        public void AddCategory(string label, FeatureVector[] features)
+        public void AddCategory(string label, Feature[] features)
         {
             if (categories.Exists(e => e.label == label))
             {

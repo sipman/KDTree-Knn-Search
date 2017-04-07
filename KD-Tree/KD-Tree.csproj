@@ -44,10 +44,11 @@
   <ItemGroup>
     <Compile Include="Categories.cs" />
     <Compile Include="Category.cs" />
-    <Compile Include="FeatureVector.cs" />
+    <Compile Include="Feature.cs" />
     <Compile Include="KDLeaf.cs" />
     <Compile Include="KDNode.cs" />
     <Compile Include="KDtree.cs" />
+    <Compile Include="Persist.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

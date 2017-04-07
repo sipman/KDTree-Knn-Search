@@ -2,10 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
+using System.Globalization;
 using System.Security.Policy;
 
 namespace KD_Tree
 {
+    /// <summary>
+    /// This class contains everything needed to do KD Tree logic.
+    /// It has two search options either euclidean distance or median determined.
+    /// </summary>
     public class KDtree
     {
         private List<KDNode> nodes;
@@ -25,86 +30,137 @@ namespace KD_Tree
 
         }
 
+        /// <summary>
+        /// This is a wrapper that allow a bit of abstraction.
+        /// This absraction allows a whole categorie to be added to the tree.
+        /// </summary>
+        /// <param name="category">A categorie that needs to be added to the tree</param>
         private void AddNode(Category category)
         {
-            foreach (FeatureVector vector in category.features.ToArray())
+            foreach (Feature vector in category.features.ToArray())
             {
-                AddNode(category.label, vector.point);
+                AddNode(category.label, vector.descr);
             }
         }
 
-        private void AddNode(string label, int [] point)
+        /// <summary>
+        /// This function adds an node to the tree.
+        /// </summary>
+        /// <param name="label">label of categorie</param>
+        /// <param name="descr">the descr in the R^n</param>
+        private void AddNode(string label, double[] descr)
         {
-          nodes.Add(new KDNode(label, point));
+            nodes.Add(new KDNode(label, descr));
 
         }
 
-        private List<KDNode> MedianDeterminedSearch(int[] point)
+        /// <summary>
+        /// A wrapper for MedianDeterminedSearch allowing ease of use.
+        /// </summary>
+        /// <param name="descr">The search descr</param>
+        /// <returns>A Nearest Neighborhood for further evaluation</returns>
+        private List<KDNode> MedianDeterminedSearch(double[] descr)
         {
 
-            return MedianDeterminedSearch(3, point);
+            return MedianDeterminedSearch(3, descr);
         }
 
-        private List<KDNode> MedianDeterminedSearch(int k, int[] point)
+        /// <summary>
+        /// A wrapper for MedianDeterminedSearch allowing ease of use.
+        /// </summary>
+        /// <param name="k">The desired size of the Nearest Neighborhood</param>
+        /// <param name="descr">The search descr</param>
+        /// <returns>A Nearest Neighborhood for further evaluation</returns>
+        private List<KDNode> MedianDeterminedSearch(int k, double[] descr)
         {
             List<int> path = new List<int>();
             path.Add(-1);
-            return MedianDeterminedSearch(k, nodes, point, 0, path);
+            return MedianDeterminedSearch(k, nodes, descr, 0, path);
         }
 
-        private List<KDNode> MedianDeterminedSearch(int k, List<KDNode> nodes, int[] point, int index, List<int> path)
+        /// <summary>
+        /// This is the search function that evaluates on the median and the current search descr index.
+        /// It works by comparing the leaf median to the search descr index, if the search descr index
+        /// is lower than median it "goes" left else it "goes" right in the tree.
+        /// Look up KD-Tree for more information.
+        ///
+        /// It calls it self recursively, taking one leaf at a time.
+        /// </summary>
+        /// <param name="k">The desired size of the Nearest Neighborhood</param>
+        /// <param name="nodes">The list of nodes that needs to be evaluated</param>
+        /// <param name="descr">The search descr</param>
+        /// <param name="index">The current index that needs to be evaluated</param>
+        /// <param name="path">The path to the current leaf in question</param>
+        /// <returns>A Nearest Neighborhood for further evaluation</returns>
+        private List<KDNode> MedianDeterminedSearch(int k, List<KDNode> nodes, double[] descr, int index, List<int> path)
         {
+            //Console.WriteLine("Hit #1");
             int numOfNodesInLeaf = nodes.Count;
             if (numOfNodesInLeaf <= k)
             {
                 BbfPath = path.ToArray();
                 return nodes;
             }
-
+            //Console.WriteLine("Hit #2");
             KDLeaf newLeaf = (tree.Exists(e => e.Path.Length == path.Count && e.Path.SequenceEqual(path.ToArray())))
-                                        ? tree.Find(e => e.Path.Length == path.Count && e.Path.SequenceEqual(path.ToArray()))
-                                        : BuildLeafInTree(nodes, index, path);
-
+                ? tree.Find(e => e.Path.Length == path.Count && e.Path.SequenceEqual(path.ToArray()))
+                : BuildLeafInTree(nodes, index, path);
+            //Console.WriteLine("Hit #3");
 
             List<KDNode> newNodes = new List<KDNode>();
-            if (point[index] < newLeaf.MedianValue && newLeaf.Left != null)
+
+            if (descr[index] < newLeaf.MedianValue && newLeaf.Left != null)
             {
-                newNodes = newLeaf.Left.Nodes.ToList();
-            }else if (point[index] >= newLeaf.MedianValue && newLeaf.Right != null)
+                //Console.WriteLine("Hit #4.1");
+                newNodes = newLeaf.Left.Nodes;
+            }else if (descr[index] >= newLeaf.MedianValue && newLeaf.Right != null)
             {
-                newNodes = newLeaf.Right.Nodes.ToList();
-            }else if (point[index] < newLeaf.MedianValue && newLeaf.Left == null)
+                //Console.WriteLine("Hit #4.2");
+                newNodes = newLeaf.Right.Nodes;
+            }else if (descr[index] < newLeaf.MedianValue && newLeaf.Left == null)
             {
-                newNodes = nodes.FindAll(e => e.point[index] < newLeaf.MedianValue);
-            }else if (point[index] >= newLeaf.MedianValue && newLeaf.Right == null)
+                //Console.WriteLine("Hit #4.3");
+                newNodes = nodes.FindAll(e => e.descr[index] < newLeaf.MedianValue);
+            }else if (descr[index] >= newLeaf.MedianValue && newLeaf.Right == null)
             {
-                newNodes = nodes.FindAll(e => e.point[index] >= newLeaf.MedianValue);
+                //Console.WriteLine("Hit #4.4");
+                newNodes = nodes.FindAll(e => e.descr[index] >= newLeaf.MedianValue);
             }
-
-            int nextStep = (point[index] < newLeaf.MedianValue) ? 0 : 1;
+            //Console.WriteLine("Hit #5");
+            int nextStep = (descr[index] < newLeaf.MedianValue) ? 0 : 1;
             path.Add(nextStep);
-
-            return MedianDeterminedSearch(k, newNodes, point, ((index + 1 < point.Length) ? index+1 : index = 0), path);
+            //Console.WriteLine("Hit #6");
+            return MedianDeterminedSearch(k, newNodes, descr, ((index + 1 < descr.Length) ? index+1 : index = 0), path);
         }
 
-
+        /// <summary>
+        /// This function builds a Leaf in the tree and saves it, so no Leaf will be computed twice.
+        /// </summary>
+        /// <param name="remainingNodes">The amount of nodes remaining for this leaf.</param>
+        /// <param name="index">The index this leaf needs to evaluate, if MedianDeterminedSearch is choosen</param>
+        /// <param name="path">The path to this exact leaf</param>
+        /// <returns>The new leaf</returns>
         private KDLeaf BuildLeafInTree(List<KDNode> remainingNodes, int index, List<int> path)
         {
+            if (remainingNodes.Count == 0)
+            {
+                return new KDLeaf();
+            }
             int numOfNodesInLeaf = remainingNodes.Count;
 
-            remainingNodes.Sort((first, second)=>first.point[index].CompareTo(second.point[index]));
+            remainingNodes.Sort((first, second)=>first.descr[index].CompareTo(second.descr[index]));
 
             int median = numOfNodesInLeaf / 2;
 
             //median--;
 
-            int medianValue = remainingNodes[median].point[index];
+            double medianValue = remainingNodes[median].descr[index];
 
             KDLeaf newLeaf = new KDLeaf();
             newLeaf.MedianValue = medianValue;
             newLeaf.Median = remainingNodes[median];
             newLeaf.Index = index;
-            newLeaf.Nodes = remainingNodes.ToArray();
+            newLeaf.Nodes = remainingNodes;
             newLeaf.Path = path.ToArray();
 
             int[] parentPath = path.Take(path.Count-1).ToArray();
@@ -125,32 +181,49 @@ namespace KD_Tree
             return newLeaf;
         }
 
-        private bool EuclideanDistanceSearch(FeatureVector vector)
+
+        /// <summary>
+        /// This is just a wrapper for ease of use.
+        /// </summary>
+        /// <param name="vector">The vector in question</param>
+        /// <returns>True, always...</returns>
+        private bool EuclideanDistanceSearch(Feature vector)
         {
             List<int> path = new List<int>();
             path.Add(-1);
             return EuclideanDistanceSearch(vector, path, nodes.Count);
         }
 
-        private bool EuclideanDistanceSearch(FeatureVector vector, List<int> path, int nodesLeft)
+        /// <summary>
+        /// This is the euclidean distance search, it work kinda like MedianDeterminedSearch but instead of
+        /// evaluating a specific search descr index to the median. It evaluates the distance between the leaf's
+        /// median descr and the search descr.
+        ///
+        /// It calls it self recursively, taking one leaf at a time.
+        /// </summary>
+        /// <param name="vector">The vector in question</param>
+        /// <param name="path">The path to this exact leaf</param>
+        /// <param name="nodesLeft">The amount of nodes left for this exact leaf</param>
+        /// <returns>True, always...</returns>
+        private bool EuclideanDistanceSearch(Feature vector, List<int> path, int nodesLeft)
         {
             if (tree.Count <= 0)
             {
                 BuildLeafInTree(nodes, 0, path);
             }
 
-            int[] parentPath = path.Take(path.Count-1).ToArray();
+            int[] parentPath = path.Take(path.Count - 1).ToArray();
 
 
             if (nodesLeft <= 2)
             {
                 KDLeaf parent = tree.Find(e => e.Path.SequenceEqual(parentPath));
-                int index = (parent.Index + 1 < vector.point.Length) ? parent.Index + 1 : 0;
-                List<KDNode> parentNodes = parent.Nodes.ToList();
-                List<KDNode> nodes = parentNodes.FindAll(e => e.point[index] < parent.MedianValue);
+                int index = (parent.Index + 1 < vector.descr.Length) ? parent.Index + 1 : 0;
+                List<KDNode> parentNodes = parent.Nodes;
+                List<KDNode> nodes = parentNodes.FindAll(e => e.descr[index] < parent.MedianValue);
                 foreach (KDNode node in nodes)
                 {
-                    double distance = CalculateDistance(node.point, vector.point, vector.point.Length);
+                    double distance = CalculateDistance(node.descr, vector.descr, vector.descr.Length);
                     if (distance < vector.smallestDistance)
                     {
                         vector.smallestDistance = distance;
@@ -176,22 +249,24 @@ namespace KD_Tree
 
 
                 List<KDNode> remainingNodes;
-                if (vector.point[parent.Index] < parent.MedianValue)
+                if (vector.descr[parent.Index] < parent.MedianValue)
                 {
 
-                    remainingNodes = nodes.FindAll(e => e.point[parent.Index] < parent.MedianValue);
-                }else
+                    remainingNodes = nodes.FindAll(e => e.descr[parent.Index] < parent.MedianValue);
+                }
+                else
                 {
-                    remainingNodes = nodes.FindAll(e => e.point[parent.Index] >= parent.MedianValue);
+                    remainingNodes = nodes.FindAll(e => e.descr[parent.Index] >= parent.MedianValue);
                 }
 
-                currentLeaf = BuildLeafInTree(remainingNodes, (parent.Index +1 < vector.point.Length) ? parent.Index + 1 : 0, path);
+                currentLeaf = BuildLeafInTree(remainingNodes,
+                    (parent.Index + 1 < vector.descr.Length) ? parent.Index + 1 : 0, path);
             }
 
             if (currentLeaf.Left == default(KDLeaf))
             {
                 int indexLeft = currentLeaf.Index;
-                if (indexLeft + 1 < vector.point.Length)
+                if (indexLeft + 1 < vector.descr.Length)
                 {
                     indexLeft += 1;
                 }
@@ -199,18 +274,24 @@ namespace KD_Tree
                 {
                     indexLeft = 0;
                 }
-                List<KDNode> remainingNodesForLeftSide = nodes.FindAll(e => e.point[currentLeaf.Index] < currentLeaf.MedianValue);
+                List<KDNode> remainingNodesForLeftSide =
+                    nodes.FindAll(e => e.descr[currentLeaf.Index] < currentLeaf.MedianValue);
                 List<int> leftPath = path.ToList();
                 leftPath.Add(0);
 
-                    BuildLeafInTree(remainingNodesForLeftSide, indexLeft, leftPath);
+                BuildLeafInTree(remainingNodesForLeftSide, indexLeft, leftPath);
 
             }
 
-            distanceToLeaf = CalculateDistance(currentLeaf.Median.point, vector.point, vector.point.Length);
-
-            distanceToLeft = CalculateDistance(currentLeaf.Left.Median.point, vector.point, vector.point.Length);
-
+            distanceToLeaf = CalculateDistance(currentLeaf.Median.descr, vector.descr, vector.descr.Length);
+            if (currentLeaf.Left != default(KDLeaf))
+            {
+                distanceToLeft = CalculateDistance(currentLeaf.Left.Median.descr, vector.descr, vector.descr.Length);
+            }
+            else
+            {
+                distanceToLeft = double.MaxValue;
+            }
             if (distanceToLeaf < vector.smallestDistance)
             {
                 vector.smallestDistance = distanceToLeaf;
@@ -220,12 +301,12 @@ namespace KD_Tree
             if (distanceToLeaf > distanceToLeft)
             {
                 path.Add(0);
-                remainingTotalNodes = currentLeaf.Nodes.Count(e => e.point[currentLeaf.Index] < currentLeaf.MedianValue);
+                remainingTotalNodes = currentLeaf.Nodes.Count(e => e.descr[currentLeaf.Index] < currentLeaf.MedianValue);
             }
             else
             {
                 path.Add(1);
-                remainingTotalNodes = currentLeaf.Nodes.Count(e => e.point[currentLeaf.Index] >= currentLeaf.MedianValue);
+                remainingTotalNodes = currentLeaf.Nodes.Count(e => e.descr[currentLeaf.Index] >= currentLeaf.MedianValue);
             }
             if (remainingTotalNodes <= 1)
             {
@@ -234,44 +315,34 @@ namespace KD_Tree
             return EuclideanDistanceSearch(vector, path, remainingTotalNodes);
         }
 
-
-        private double CalculateDistance(int[] point1, int[] point2, int length)
+        /// <summary>
+        /// This function calculates the euclidean distance between to descrs in R^n
+        /// </summary>
+        /// <param name="descr1">First descr</param>
+        /// <param name="descr2">Second descr</param>
+        /// <param name="length">Length of index's desired for calculation</param>
+        /// <returns>Distance between the descrs</returns>
+        private double CalculateDistance(double[] descr1, double[] descr2, int length)
         {
-            int sum = 0;
+            double sum = 0;
             for (int i = 0; i < length; i++)
             {
-                sum += (point1[i] - point2[i])*(point1[i] - point2[i]);
+                sum += (descr1[i] - descr2[i])*(descr1[i] - descr2[i]);
             }
             return Math.Sqrt(sum);
         }
 
-        public string Search(FeatureVector[] vectors)
-        {
-            return Search(3, vectors);
-        }
-
-        public string Search(int k, FeatureVector[] vectors)
-        {
-
-            foreach (FeatureVector vector in vectors)
-            {
-
-                /*List<KDNode> kNN = MedianDeterminedSearch(k, vector.point);
-                DetermineCloset(kNN.ToArray(), vector);*/
-                EuclideanDistanceSearch(vector);
-
-            }
-            string result = SelectResult(vectors);
-
-            return result;
-        }
-
-        private void DetermineCloset(KDNode[] kNN, FeatureVector vector)
+        /// <summary>
+        /// This function determines which descr is closest in a nearest neighborhood
+        /// </summary>
+        /// <param name="kNN">The neighborhood</param>
+        /// <param name="vector">The vector in question</param>
+        private void DetermineCloset(KDNode[] kNN, Feature vector)
         {
             foreach (KDNode node in kNN)
             {
 
-                double distance = CalculateDistance(node.point, vector.point, node.point.Length);
+                double distance = CalculateDistance(node.descr, vector.descr, node.descr.Length);
                 if (vector.smallestDistance > distance)
                 {
                     vector.smallestDistance = distance;
@@ -280,13 +351,83 @@ namespace KD_Tree
             }
         }
 
-        private string SelectResult(FeatureVector[] vectors)
+        /// <summary>
+        /// This function evaluates all the vectors in question and finds the most dominating result label
+        /// </summary>
+        /// <param name="vectors">The vectors in question</param>
+        /// <returns>The most dominating result label</returns>
+        private string SelectResult(Feature[] vectors)
         {
             return (from vector in vectors
                 group vector by vector.category
                 into grp
                 orderby grp.Count() descending
                 select grp.Key).First();
+        }
+
+        /// <summary>
+        /// This is just a wrapper for ease of use
+        /// </summary>
+        /// <param name="vectors">The vectors in question</param>
+        /// <returns>Result label</returns>
+        public string MedianSearch(Feature[] vectors)
+        {
+            return MedianSearch(3, vectors);
+        }
+
+        /// <summary>
+        /// This is performs a Search based upon the mediant.
+        /// </summary>
+        /// <param name="k">The desired nearest neaighborhood</param>
+        /// <param name="vectors">The vectors in question</param>
+        /// <returns>Result label</returns>
+        public string MedianSearch(int k, Feature[] vectors)
+        {
+            int i = 1;
+            int total = vectors.Length;
+            foreach (Feature vector in vectors)
+            {
+               if(i % 50 == 0){
+                Console.Clear();
+                Console.WriteLine("Searching...");
+                Console.WriteLine(i+"/"+total);
+               }
+
+                List<KDNode> kNN = MedianDeterminedSearch(k, vector.descr);
+                DetermineCloset(kNN.ToArray(), vector);
+
+                i++;
+            }
+
+            Console.WriteLine(i);
+            string result = SelectResult(vectors);
+
+            return result;
+        }
+
+        /// <summary>
+        /// This performs the Euclidean distance search.
+        /// </summary>
+        /// <param name="vectors">The vectors in question</param>
+        /// <returns>Result label</returns>
+        public string EuclideanSearch(Feature[] vectors)
+        {
+            int i = 1;
+            int total = vectors.Length;
+            foreach (Feature vector in vectors)
+            {
+                Console.Clear();
+                Console.WriteLine("Searching...");
+                Console.WriteLine(i+"/"+total);
+
+
+                EuclideanDistanceSearch(vector);
+                i++;
+            }
+
+            string result = SelectResult(vectors);
+
+            return result;
         }
 
     }
